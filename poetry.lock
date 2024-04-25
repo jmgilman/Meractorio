@@ -158,6 +158,17 @@ files = [
 ]
 
 [[package]]
+name = "inflection"
+version = "0.5.1"
+description = "A port of Ruby on Rails inflector to Python"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "inflection-0.5.1-py2.py3-none-any.whl", hash = "sha256:f38b2b640938a4f35ade69ac3d053042959b62a0f1076a5bbaa1b9526605a8a2"},
+    {file = "inflection-0.5.1.tar.gz", hash = "sha256:1a29730d366e996aaacffb2f1f1cb9593dc38e2ddd30c91250c6dde09ea9b417"},
+]
+
+[[package]]
 name = "loguru"
 version = "0.7.2"
 description = "Python logging made (stupidly) simple"
@@ -174,6 +185,24 @@ win32-setctime = {version = ">=1.0.0", markers = "sys_platform == \"win32\""}
 
 [package.extras]
 dev = ["Sphinx (==7.2.5)", "colorama (==0.4.5)", "colorama (==0.4.6)", "exceptiongroup (==1.1.3)", "freezegun (==1.1.0)", "freezegun (==1.2.2)", "mypy (==v0.910)", "mypy (==v0.971)", "mypy (==v1.4.1)", "mypy (==v1.5.1)", "pre-commit (==3.4.0)", "pytest (==6.1.2)", "pytest (==7.4.0)", "pytest-cov (==2.12.1)", "pytest-cov (==4.1.0)", "pytest-mypy-plugins (==1.9.3)", "pytest-mypy-plugins (==3.0.0)", "sphinx-autobuild (==2021.3.14)", "sphinx-rtd-theme (==1.3.0)", "tox (==3.27.1)", "tox (==4.11.0)"]
+
+[[package]]
+name = "pyairtable"
+version = "2.3.3"
+description = "Python Client for the Airtable API"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyairtable-2.3.3-py2.py3-none-any.whl", hash = "sha256:2fa872971e31e3e8675cb6d9606362ea8072bbb7971592826edc7010b6afa87b"},
+    {file = "pyairtable-2.3.3.tar.gz", hash = "sha256:6f52bd270d28ba6459b7cc473588e517085a737d70c68e855e6d104972e1121e"},
+]
+
+[package.dependencies]
+inflection = "*"
+pydantic = "*"
+requests = ">=2.22.0"
+typing-extensions = "*"
+urllib3 = ">=1.26"
 
 [[package]]
 name = "pydantic"
@@ -351,4 +380,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "3ecb0e298d0a9e8eda74141781322526edb90ff8879eb8572f0ec96df5f78d0e"
+content-hash = "dcdcc8351b5045d24ac3e3d67606aa8f5db12b6d3c64c5d8dec542561d9d9280"

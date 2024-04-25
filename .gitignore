@@ -4,3 +4,6 @@
 
 # Cookies
 cookies.json
+
+# Misc
+.env
