@@ -4,6 +4,8 @@ import requests
 
 
 class Scraper:
+    session: requests.Session
+
     def __init__(self):
         self.session = requests.Session()
 
