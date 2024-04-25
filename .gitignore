@@ -1,3 +1,6 @@
 # Nix
 .devenv/
 .direnv/
+
+# Cookies
+cookies.json
