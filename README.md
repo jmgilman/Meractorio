@@ -28,4 +28,4 @@ Then you can test endpoints with:
 >>> r.text
 ```
 
-[Mercatorio]: (https://mercatorio.io)
+[Mercatorio]: https://mercatorio.io
