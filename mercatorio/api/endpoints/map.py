@@ -1,6 +1,6 @@
 from pydantic import BaseModel, RootModel
 
-from mercatorio.scraper import Scraper
+from mercatorio.api.base import BaseAPI
 
 BASE_URL = "https://play.mercatorio.io/api/map/regions"
 
@@ -33,19 +33,14 @@ class RegionsList(RootModel):
         return self.root[position]
 
 
-class Map:
+class Map(BaseAPI):
     """A class for interacting with the map API endpoint."""
 
-    scraper: Scraper
-
-    def __init__(self, scraper):
-        self.scraper = scraper
-
-    def all(self):
+    async def all(self):
         """Get a list of all regions in the game.
 
         Returns:
             RegionsList: A list of all regions in the game
         """
-        response = self.scraper.get(BASE_URL)
+        response = await self.scraper.get(BASE_URL)
         return RegionsList.model_validate(response.json())

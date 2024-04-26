@@ -1,7 +1,10 @@
+import asyncio
 from loguru import logger
 
+from mercatorio.airtable.client import ApiClient
 from mercatorio.airtable.operation import SyncOperation
-from mercatorio.api import towns
+from mercatorio.api.api import Api
+from mercatorio.cache import Cache
 
 TABLE_NAME = "Town Market Data"
 
@@ -9,42 +12,62 @@ TABLE_NAME = "Town Market Data"
 class TownsMarketSync(SyncOperation):
     """Syncs town market data from the Mercatorio API to AirTable."""
 
-    def __init__(self, base_name: str, scraper, client, whitelist: list[str] = None):
-        super().__init__(base_name, scraper, client)
-        self.name = "Towns Market Data"
+    def __init__(
+        self,
+        base_name: str,
+        api: Api,
+        client: ApiClient,
+        cache: Cache,
+        whitelist: list[str] = None,
+    ):
+        super().__init__(base_name, api, client, cache)
         self.whitelist = whitelist
 
-    def sync(self):
-        api = towns.Towns(self.scraper)
+    async def sync(self):
         table = self._get_table(TABLE_NAME)
 
         data = []
-        all = api.all()
+        all_towns = await self.api.towns.all()
         if self.whitelist:
-            all = [t for t in all if t.name in self.whitelist]
+            all_towns = [t for t in all_towns if t.name in self.whitelist]
 
-        for i, town in enumerate(all):
-            logger.info(f"Syncing market data for {town.name} ({i + 1}/{len(all)})")
-            for item, info in api.market(town.id).items():
-                data.append(
-                    {
-                        "id": f"{town.name} - {item}",
-                        "town": town.id,
-                        "item_name": item,
-                        "price": info.price,
-                        "last_price": info.last_price,
-                        "average_price": info.average_price,
-                        "moving_average": info.moving_average,
-                        "highest_bid": info.highest_bid,
-                        "lowest_ask": info.lowest_ask,
-                        "volume": info.volume,
-                        "bid_volume": info.bid_volume,
-                        "avg_bid_price": info.avg_bid_price,
-                        "ask_volume": info.ask_volume,
-                        "avg_ask_price": info.avg_ask_price,
-                        "avg_historical_volume": info.avg_historical_volume,
-                    }
-                )
+        batch_size = 2
+        data = []
+        for i in range(0, len(all_towns), batch_size):
+            batch = all_towns[i : i + batch_size]
+            tasks = [self.fetch_town_data(town) for town in batch]
+            results = await asyncio.gather(*tasks)
+            data.extend(item for sublist in results for item in sublist)
+            logger.info(
+                f"Processed batch {i//batch_size + 1}/{(len(all_towns) + batch_size - 1) // batch_size}"
+            )
 
         logger.info(f"Upserting {len(data)} records to {TABLE_NAME}")
         self.client.upsert_records_by_field(table, "id", data)
+
+    async def fetch_town_data(self, town):
+        logger.info(f"Syncing market data for {town.name}")
+        market_data = await self.api.towns.market(town.id)
+        return [
+            {
+                "id": f"{town.name} - {item}",
+                "town": town.id,
+                "item_name": item,
+                "price": market_data[item].price,
+                "last_price": market_data[item].last_price,
+                "average_price": market_data[item].average_price,
+                "moving_average": market_data[item].moving_average,
+                "highest_bid": market_data[item].highest_bid,
+                "lowest_ask": market_data[item].lowest_ask,
+                "volume": market_data[item].volume,
+                "bid_volume": market_data[item].bid_volume,
+                "avg_bid_price": market_data[item].avg_bid_price,
+                "ask_volume": market_data[item].ask_volume,
+                "avg_ask_price": market_data[item].avg_ask_price,
+                "avg_historical_volume": market_data[item].avg_historical_volume,
+            }
+            for item in market_data
+        ]
+
+    def __str__(self):
+        return "Towns Market Data"

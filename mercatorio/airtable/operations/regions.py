@@ -1,5 +1,4 @@
 from mercatorio.airtable.operation import SyncOperation
-from mercatorio.api import map
 
 TABLE_NAME = "Regions"
 
@@ -7,16 +6,11 @@ TABLE_NAME = "Regions"
 class RegionsSync(SyncOperation):
     """Syncs region data from the Mercatorio API to AirTable."""
 
-    def __init__(self, base_name: str, scraper, client):
-        super().__init__(base_name, scraper, client)
-        self.name = "Regions"
-
-    def sync(self):
-        api = map.Map(self.scraper)
+    async def sync(self):
         table = self._get_table(TABLE_NAME)
 
         data = []
-        for region in api.all():
+        for region in await self.api.map.all():
             data.append(
                 {
                     "id": region.id,
@@ -27,3 +21,6 @@ class RegionsSync(SyncOperation):
                 }
             )
         self.client.upsert_records_by_field(table, "id", data)
+
+    def __str__(self):
+        return "Regions"

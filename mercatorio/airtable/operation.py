@@ -1,24 +1,27 @@
 from abc import ABC, abstractmethod
 
 from mercatorio.airtable.client import ApiClient
+from mercatorio.api.api import Api
+from mercatorio.cache import Cache
 from mercatorio.scraper import Scraper
 
 
 class SyncOperation(ABC):
     """Represents a sync operation between the Mercatorio API and AirTable."""
 
+    api: Api
     base_name: str
+    cache: Cache
     client: ApiClient
-    name: str
-    scraper: Scraper
 
-    def __init__(self, base_name: str, scraper: Scraper, client: ApiClient):
+    def __init__(self, base_name: str, api: Api, client: ApiClient, cache: Cache):
         self.base_name = base_name
-        self.scraper = scraper
+        self.api = api
         self.client = client
+        self.cache = cache
 
     @abstractmethod
-    def sync(self):
+    async def sync(self):
         """Sync data from the Mercatorio API to AirTable."""
         pass
 

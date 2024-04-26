@@ -3,7 +3,8 @@
 .direnv/
 
 # State
-state.json
+cache.db
+auth.json
 
 # Misc
 .env

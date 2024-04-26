@@ -1,7 +1,9 @@
 import json
 import time
 
+from httpx import AsyncClient
 from requests import Session
+
 
 API_KEY = "AIzaSyAOEF0TZjQWE54ANjk-EttcCA2hm7IHglc"
 
@@ -13,21 +15,22 @@ class FirebaseAuthenticator:
         self.state_path = state_path
         self._load_state()
 
-    def refresh(self, session: Session):
+    async def refresh(self, session: AsyncClient):
         """Refresh the Firebase token."""
         data = {
             "grant_type": "refresh_token",
             "refresh_token": self.refresh_token,
         }
-        response = session.post(
+        response = await session.post(
             f"https://securetoken.googleapis.com/v1/token?key={API_KEY}",
-            data,
-        ).json()
+            data=data,
+        )
+        auth_details = response.json()
 
-        self.id_token = response["id_token"]
-        self.refresh_token = response["refresh_token"]
+        self.id_token = auth_details["id_token"]
+        self.refresh_token = auth_details["refresh_token"]
         self.current_time = time.time()
-        self.expires_in = response["expires_in"]
+        self.expires_in = auth_details["expires_in"]
 
         self._save_state()
 

@@ -1,9 +1,10 @@
 from typing import Optional
 
+import asyncio
 from loguru import logger
 from pydantic import BaseModel, RootModel, TypeAdapter
 
-from mercatorio.scraper import Scraper
+from mercatorio.api.base import BaseAPI
 
 BASE_URL = "https://play.mercatorio.io/api/towns"
 
@@ -121,20 +122,15 @@ class TownsList(RootModel):
         return len(self.root)
 
 
-class Towns:
+class Towns(BaseAPI):
     """A class for interacting with the towns API endpoint."""
 
-    scraper: Scraper
-
-    def __init__(self, scraper):
-        self.scraper = scraper
-
-    def all(self):
+    async def all(self):
         """Get a list of all towns in the game."""
-        response = self.scraper.get(BASE_URL)
+        response = await self.scraper.get(BASE_URL)
         return TownsList.model_validate(response.json())
 
-    def market(self, id) -> dict[str, MarketDataComplete]:
+    async def market(self, id) -> dict[str, MarketDataComplete]:
         """Get market data for a town.
 
         Args:
@@ -143,37 +139,18 @@ class Towns:
         Returns:
             MarketData: The market data for the town
         """
-        response = self.scraper.get(f"{BASE_URL}/{id}/marketdata")
-
-        try:
-            market_data = MarketData.model_validate(response.json())
-        except Exception as e:
-            logger.error(f"Error getting market data for {id}: {e}")
-            with open("error.json", "w") as f:
-                f.write(response.text)
+        market_data = await self.get_market_overview(id)
+        if not market_data:
             return {}
 
         final_data = {}
         for item, info in market_data.items():
-            response = self.scraper.get(f"{BASE_URL}/{id}/markets/{item}")
+            details_task = self.get_market_item_overview(id, item)
+            history_task = self.get_market_item_history(id, item)
+            details, history = await asyncio.gather(details_task, history_task)
 
-            try:
-                details = MarketItemDataDetails.model_validate(response.json())
-            except Exception as e:
-                logger.error(f"Error getting market data for {id} - {item}: {e}")
-                with open("error.json", "w") as f:
-                    f.write(response.text)
-                continue
-
-            response = self.scraper.get(f"{BASE_URL}/{id}/markets/{item}/history")
-            ta = TypeAdapter(list[MarketItemDataHistory])
-
-            try:
-                history = ta.validate_python(response.json())
-            except Exception as e:
-                logger.error(f"Error getting market history for {id} - {item}: {e}")
-                with open("error.json", "w") as f:
-                    f.write(response.text)
+            if not details or not history:
+                logger.error(f"Error getting market data for {item} in {id}")
                 continue
 
             if len(details.bids) > 0:
@@ -211,3 +188,73 @@ class Towns:
             )
 
         return final_data
+
+    async def get_market_overview(self, town_id) -> Optional[MarketData]:
+        """Get the market overview for a town.
+
+        Args:
+            town_id (int): The ID of the town
+
+        Returns:
+            MarketData: The market overview for the town
+        """
+        logger.debug(f"Getting market overview for town {town_id}")
+        response = await self.scraper.get(f"{BASE_URL}/{town_id}/marketdata")
+
+        try:
+            market_data = MarketData.model_validate(response.json())
+        except Exception as e:
+            logger.error(f"Error getting market data for {id}: {e}")
+            return None
+
+        return market_data
+
+    async def get_market_item_overview(
+        self, town_id, item
+    ) -> Optional[MarketItemDataDetails]:
+        """Get the market overview for an item in a town.
+
+        Args:
+            town_id (int): The ID of the town
+            item (str): The item to get the overview for
+
+        Returns:
+            MarketItemDataDetails: The market overview for the town
+        """
+        logger.debug(f"Getting market data for {item} in town {town_id}")
+        response = await self.scraper.get(f"{BASE_URL}/{town_id}/markets/{item}")
+
+        try:
+            market_data = MarketItemDataDetails.model_validate(response.json())
+        except Exception as e:
+            logger.error(f"Error getting market data for item {item} in {id}: {e}")
+            return None
+
+        return market_data
+
+    async def get_market_item_history(
+        self, town_id, item
+    ) -> list[MarketItemDataHistory]:
+        """Get the market history for an item in a town.
+
+        Args:
+            town_id (int): The ID of the town
+            item (str): The item to get the history for
+
+        Returns:
+            list[MarketItemDataHistory]: The market history for the item
+        """
+        logger.debug(f"Getting market history for {item} in town {town_id}")
+        response = await self.scraper.get(
+            f"{BASE_URL}/{town_id}/markets/{item}/history"
+        )
+
+        ta = TypeAdapter(list[MarketItemDataHistory])
+
+        try:
+            market_data = ta.validate_python(response.json())
+        except Exception as e:
+            logger.error(f"Error getting market history for item {item} in {id}: {e}")
+            return []
+
+        return market_data
