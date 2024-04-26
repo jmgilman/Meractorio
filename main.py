@@ -44,7 +44,7 @@ async def main(auth_path: str, cache_path: str, debug: bool):
         sys.exit(1)
 
     logger.info("Initializing Airtable API client.")
-    airtable = ApiClient(os.environ["AIRTABLE_API_KEY"])
+    airtable = ApiClient(os.environ["AIRTABLE_API_KEY"], BASE_NAME)
 
     logger.info("Loading auth data from {}", auth_path)
     scraper = Scraper(auth_path)
@@ -72,9 +72,9 @@ async def main(auth_path: str, cache_path: str, debug: bool):
     # Define the operations to run.
     # Comment out any operations you don't want to run.
     operations = [
-        # RegionsSync(BASE_NAME, scraper, api),
-        # TownsSync(BASE_NAME, scraper, api),
-        TownsMarketSync(BASE_NAME, api, airtable, whitelist),
+        # RegionsSync(api, airtable),
+        # TownsSync(api, airtable),
+        TownsMarketSync(api, airtable, whitelist),
     ]
 
     while True:

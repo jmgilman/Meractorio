@@ -7,8 +7,6 @@ class TownsSync(SyncOperation):
     """Syncs town data from the Mercatorio API to AirTable."""
 
     async def sync(self):
-        table = self._get_table(TABLE_NAME)
-
         data = []
         for town in await self.api.towns.all():
             data.append(
@@ -21,7 +19,7 @@ class TownsSync(SyncOperation):
                     "capital": town.capital,
                 }
             )
-        self.client.upsert_records_by_field(table, "id", data)
+        self.client.upsert_records_by_field(TABLE_NAME, "id", data)
 
     def __str__(self):
         return "Towns"

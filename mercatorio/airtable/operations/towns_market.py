@@ -14,18 +14,15 @@ class TownsMarketSync(SyncOperation):
 
     def __init__(
         self,
-        base_name: str,
         api: Api,
         client: ApiClient,
         cache: Cache,
         whitelist: list[str] = None,
     ):
-        super().__init__(base_name, api, client, cache)
+        super().__init__(api, client, cache)
         self.whitelist = whitelist
 
     async def sync(self):
-        table = self._get_table(TABLE_NAME)
-
         data = []
         all_towns = await self.api.towns.all()
         if self.whitelist:
@@ -43,7 +40,7 @@ class TownsMarketSync(SyncOperation):
             )
 
         logger.info(f"Upserting {len(data)} records to {TABLE_NAME}")
-        self.client.upsert_records_by_field(table, "id", data)
+        self.client.upsert_records_by_field(TABLE_NAME, "id", data)
 
     async def fetch_town_data(self, town):
         logger.info(f"Syncing market data for {town.name}")

@@ -7,8 +7,6 @@ class RegionsSync(SyncOperation):
     """Syncs region data from the Mercatorio API to AirTable."""
 
     async def sync(self):
-        table = self._get_table(TABLE_NAME)
-
         data = []
         for region in await self.api.map.all():
             data.append(
@@ -20,7 +18,7 @@ class RegionsSync(SyncOperation):
                     "size": region.size,
                 }
             )
-        self.client.upsert_records_by_field(table, "id", data)
+        self.client.upsert_records_by_field(TABLE_NAME, "id", data)
 
     def __str__(self):
         return "Regions"
