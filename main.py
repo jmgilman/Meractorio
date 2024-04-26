@@ -33,7 +33,7 @@ def main(state: str):
 
     if not os.environ.get("AIRTABLE_API_KEY"):
         logger.error("AIRTABLE_API_KEY environment variable is not set.")
-        os.exit(1)
+        sys.exit(1)
 
     logger.info("Initializing Airtable API client.")
     api = ApiClient(os.environ["AIRTABLE_API_KEY"])
