@@ -1,7 +1,7 @@
 from mercatorio.api import map, towns
 from mercatorio.scraper import Scraper
 
-scraper = Scraper.from_cookies("cookies.json")
+scraper = Scraper("state.json")
 
 map = map.Map(scraper)
 towns = towns.Towns(scraper)

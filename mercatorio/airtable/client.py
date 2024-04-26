@@ -36,4 +36,4 @@ class ApiClient:
         for record in data:
             recordsToUpsert.append(dict(fields=record))
 
-        table.batch_upsert(recordsToUpsert, [key_field])
+        table.batch_upsert(recordsToUpsert, [key_field], typecast=True)

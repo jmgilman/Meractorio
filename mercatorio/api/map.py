@@ -47,5 +47,5 @@ class Map:
         Returns:
             RegionsList: A list of all regions in the game
         """
-        response = self.scraper.session.get(BASE_URL)
+        response = self.scraper.get(BASE_URL)
         return RegionsList.model_validate(response.json())

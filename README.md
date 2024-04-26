@@ -6,7 +6,7 @@ The scraped data is reformated into a table-structure that is suitable for AirTa
 ## Usage
 
 You must have a local file containing cookies from an authenticated [Mercatorio] session.
-By default, the scraper looks for a local `cookies.json` file (this can be changed with the `--cookies` flag).
+By default, the scraper looks for a local `session.json` file (this can be changed with the `--session` flag).
 
 Additionally, you must expose an AirTable API key via the `AIRTABLE_API_KEY` environment variable.
 
@@ -27,7 +27,7 @@ poetry run python -i test.py
 Then you can test endpoints with:
 
 ```python
->>> r = scraper.session.get("https://play.mercatorio.io/api/towns/181001062/marketdata")
+>>> r = scraper.get("https://play.mercatorio.io/api/towns/181001062/marketdata")
 >>> r.text
 ```
 

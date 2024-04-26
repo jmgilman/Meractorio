@@ -1,7 +1,7 @@
 from mercatorio.airtable.operation import SyncOperation
 from mercatorio.api import towns
 
-TOWNS_TABLE_NAME = "Towns"
+TABLE_NAME = "Towns"
 
 
 class TownsSync(SyncOperation):
@@ -12,12 +12,12 @@ class TownsSync(SyncOperation):
         self.name = "Towns"
 
     def sync(self):
-        towns_api = towns.Towns(self.scraper)
-        towns_table = self._get_table(TOWNS_TABLE_NAME)
+        api = towns.Towns(self.scraper)
+        table = self._get_table(TABLE_NAME)
 
-        town_data = []
-        for town in towns_api.all():
-            town_data.append(
+        data = []
+        for town in api.all():
+            data.append(
                 {
                     "id": town.id,
                     "name": town.name,
@@ -27,4 +27,4 @@ class TownsSync(SyncOperation):
                     "capital": town.capital,
                 }
             )
-        self.client.upsert_records_by_field(towns_table, "id", town_data)
+        self.client.upsert_records_by_field(table, "id", data)

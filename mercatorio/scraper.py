@@ -2,32 +2,37 @@ import json
 
 import requests
 
+from loguru import logger
+
+from mercatorio.firebase import FirebaseAuthenticator
+
 
 class Scraper:
+    """A simple web scraper for Mercatorio."""
+
+    auth: FirebaseAuthenticator
     session: requests.Session
 
-    def __init__(self):
+    def __init__(self, state_path: str):
         self.session = requests.Session()
+        self.auth = FirebaseAuthenticator(state_path)
+        self.session.cookies.set("FIREBASE_ID_TOKEN", self.auth.id_token)
 
-    @staticmethod
-    def from_cookies(path: str):
-        """Create a new Scraper instance from a cookies file.
-
-        The cookies file should be a JSON file containing an array of objects
-        with the following keys:
-            - name (str): The name of the cookie
-            - value (str): The value of the cookie
+    def get(self, url: str, **kwargs):
+        """Make a GET request to the given URL.
 
         Args:
-            path (str): Path to the cookies file
+            url (str): The URL to make the request to.
+            **kwargs: Additional keyword arguments to pass to requests.Session.get.
 
         Returns:
-            Scraper: A new Scraper instance with the cookies set
+            requests.Response: The response from the server.
         """
-        scraper = Scraper()
-        with open(path, "r") as f:
-            cookies = json.load(f)
-            for cookie in cookies:
-                scraper.session.cookies.set(cookie["name"], cookie["value"])
+        response = self.session.get(url, **kwargs)
+        if response.status_code == 401:
+            logger.info("Refreshing Firebase token")
+            self.auth.refresh(self.session)
+            self.session.cookies.set("FIREBASE_ID_TOKEN", self.auth.id_token)
+            response = self.session.get(url, **kwargs)
 
-        return scraper
+        return self.session.get(url, **kwargs)

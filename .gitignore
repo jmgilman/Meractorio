@@ -2,8 +2,8 @@
 .devenv/
 .direnv/
 
-# Cookies
-cookies.json
+# State
+state.json
 
 # Misc
 .env
