@@ -41,6 +41,7 @@ class TownsMarketSync(SyncOperation):
 
         logger.info(f"Upserting {len(data)} records to {TABLE_NAME}")
         self.client.upsert_records_by_field(TABLE_NAME, "id", data)
+        return len(data)
 
     async def fetch_town_data(self, town):
         logger.info(f"Syncing market data for {town.name}")

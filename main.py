@@ -2,6 +2,7 @@ import aiosqlite
 import asyncclick as click
 
 from loguru import logger
+from pyairtable import Table
 from mercatorio.api.api import Api
 from mercatorio.airtable.client import ApiClient
 from mercatorio.airtable.operations import RegionsSync, TownsSync, TownsMarketSync
@@ -78,16 +79,32 @@ async def main(auth_path: str, cache_path: str, debug: bool):
         TownsMarketSync(api, airtable, cache, whitelist),
     ]
 
+    sync_table = airtable.base.table("Sync")
     while True:
-        for op in operations:
-            logger.info("Running sync operation: {}", op)
-            await op.sync()
+        current_turn = await api.turn()
+        logger.info("Current turn: {}", current_turn)
 
-        now = datetime.datetime.now()
-        seconds_until_next_hour = (60 - now.minute) * 60 - now.second
-        seconds_to_sleep = seconds_until_next_hour + 60
-        logger.info("Sleeping for {} seconds", seconds_to_sleep)
-        time.sleep(seconds_to_sleep)
+        last_turn = sync_table.all()[-1]["fields"]["turn"]
+        if last_turn < current_turn:
+            num_records_synced = 0
+            for op in operations:
+                logger.info("Running sync operation: {}", op)
+                num_records_synced += await op.sync()
+
+            logger.info("Synced a total of {} records", num_records_synced)
+
+            sync_table.create(
+                {
+                    "turn": current_turn,
+                    "timestamp": datetime.datetime.now().isoformat() + "Z",
+                    "records": num_records_synced,
+                },
+            )
+
+            time.sleep(60)
+        else:
+            logger.info("No sync needed.")
+            time.sleep(60)
 
 
 if __name__ == "__main__":

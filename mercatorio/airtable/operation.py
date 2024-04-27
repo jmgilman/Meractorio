@@ -20,6 +20,10 @@ class SyncOperation(ABC):
         self.cache = cache
 
     @abstractmethod
-    async def sync(self):
-        """Sync data from the Mercatorio API to AirTable."""
+    async def sync(self) -> int:
+        """Sync data from the Mercatorio API to AirTable.
+
+        Returns:
+            The number of records synced.
+        """
         pass

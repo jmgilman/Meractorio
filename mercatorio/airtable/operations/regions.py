@@ -19,6 +19,7 @@ class RegionsSync(SyncOperation):
                 }
             )
         self.client.upsert_records_by_field(TABLE_NAME, "id", data)
+        return len(data)
 
     def __str__(self):
         return "Regions"

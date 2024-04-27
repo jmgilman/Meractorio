@@ -4,6 +4,7 @@
 
 # State
 cache.db
+cache.db-journal
 auth.json
 
 # Misc
