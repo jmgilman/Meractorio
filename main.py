@@ -1,3 +1,4 @@
+import aiosqlite
 import asyncclick as click
 
 from loguru import logger
@@ -50,10 +51,10 @@ async def main(auth_path: str, cache_path: str, debug: bool):
     scraper = Scraper(auth_path)
 
     logger.info("Loading cache from {}", cache_path)
-    cache = Cache(cache_path)
-    await cache.init()
+    cache = await aiosqlite.connect(cache_path)
 
     api = Api(scraper, cache)
+    await api.init_cache()
 
     # Town whitelist for market data (speeds up syncing)
     whitelist = [
@@ -74,7 +75,7 @@ async def main(auth_path: str, cache_path: str, debug: bool):
     operations = [
         # RegionsSync(api, airtable),
         # TownsSync(api, airtable),
-        TownsMarketSync(api, airtable, whitelist),
+        TownsMarketSync(api, airtable, cache, whitelist),
     ]
 
     while True:

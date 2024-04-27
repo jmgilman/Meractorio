@@ -13,7 +13,7 @@ Additionally, you must expose an AirTable API key via the `AIRTABLE_API_KEY` env
 Run it with:
 
 ```shell
-poetry run python main.py
+$ poetry run python main.py
 ```
 
 ## Testing
@@ -21,7 +21,11 @@ poetry run python main.py
 To start a Python session with an authenticated scraper:
 
 ```shell
-poetry run python -i test.py
+$ poetry run ipython
+>>> from shell import main
+>>> await main()
+>>> from shell import airtable, api, cache
+>>> # Now you can use airtable, api, and cache
 ```
 
 Then you can test endpoints with:

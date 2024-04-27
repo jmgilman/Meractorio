@@ -8,3 +8,7 @@ auth.json
 
 # Misc
 .env
+
+# Python
+__pycache__/
+*.pyc

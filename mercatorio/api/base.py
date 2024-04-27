@@ -8,3 +8,7 @@ class BaseAPI:
     def __init__(self, scraper: Scraper, cache: Cache):
         self.scraper = scraper
         self.cache = cache
+
+    def init_cache(self):
+        """Initialize the cache for this API endpoint."""
+        pass

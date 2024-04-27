@@ -31,6 +31,7 @@
           name = "Mercatorio";
           packages = with pkgs; [
             poetry
+            sqlite
           ];
         };
       };
