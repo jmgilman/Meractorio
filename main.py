@@ -19,7 +19,6 @@ BASE_NAME = "Raw Data"
 @click.option(
     "--api-key",
     type=str,
-    default="auth.json",
     help="Airbase API key.",
     envvar="AIRBASE_API_KEY",
 )
