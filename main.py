@@ -1,16 +1,14 @@
 import aiosqlite
 import asyncclick as click
+from pyairtable.formulas import match
 
 from loguru import logger
-from pyairtable import Table
 from mercatorio.api.api import Api
 from mercatorio.airtable.client import ApiClient
 from mercatorio.airtable.operations import RegionsSync, TownsSync, TownsMarketSync
-from mercatorio.cache import Cache
 from mercatorio.scraper import Scraper
 
 import datetime
-import os
 import sys
 import time
 
@@ -89,8 +87,9 @@ async def main(api_key: str, auth_path: str, cache_path: str, debug: bool):
         logger.info("Current turn: {}", current_turn)
 
         sync_table = airtable.base.table("Sync")
-        last_turn = sync_table.all()[-1]["fields"]["turn"]
-        if last_turn < current_turn:
+        if not sync_table.first(formula=match({"turn": current_turn})):
+            logger.info("Sync needed.")
+
             num_records_synced = 0
             for op in operations:
                 logger.info("Running sync operation: {}", op)

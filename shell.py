@@ -26,7 +26,7 @@ cache = None
 async def main():
     global airtable, api, cache
 
-    airtable = ApiClient(os.environ["AIRTABLE_API_KEY"], BASE_NAME)
+    airtable = ApiClient(os.environ["AIRBASE_API_KEY"], BASE_NAME)
     scraper = Scraper("auth.json")
     cache = await aiosqlite.connect("cache.db")
     api = Api(scraper, cache)
