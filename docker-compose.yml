@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  sync:
+    build: .
+    environment:
+      AIRBASE_API_KEY: ${AIRBASE_API_KEY}
+      AUTH_PATH: /config/auth.json
+      CACHE_PATH: /config/cache.db
+    volumes:
+      - ./auth.json:/config/auth.json
+      - ./cache.db:/config/cache.db
+    restart: always

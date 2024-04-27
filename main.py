@@ -19,19 +19,28 @@ BASE_NAME = "Raw Data"
 
 @click.command()
 @click.option(
+    "--api-key",
+    type=str,
+    default="auth.json",
+    help="Airbase API key.",
+    envvar="AIRBASE_API_KEY",
+)
+@click.option(
     "--auth-path",
     type=click.Path(exists=True),
     default="auth.json",
     help="Path to the file holding session state.",
+    envvar="AUTH_PATH",
 )
 @click.option(
     "--cache-path",
     type=click.Path(),
     default="cache.db",
     help="Path to the cache database.",
+    envvar="CACHE_PATH",
 )
-@click.option("--debug", is_flag=True, help="Enable debug logging.")
-async def main(auth_path: str, cache_path: str, debug: bool):
+@click.option("--debug", is_flag=True, help="Enable debug logging.", envvar="DEBUG")
+async def main(api_key: str, auth_path: str, cache_path: str, debug: bool):
     """A simple CLI for scraping Mercatorio data."""
     logger.remove()
     logger.add(
@@ -41,12 +50,8 @@ async def main(auth_path: str, cache_path: str, debug: bool):
         colorize=True,
     )
 
-    if not os.environ.get("AIRTABLE_API_KEY"):
-        logger.error("AIRTABLE_API_KEY environment variable is not set.")
-        sys.exit(1)
-
     logger.info("Initializing Airtable API client.")
-    airtable = ApiClient(os.environ["AIRTABLE_API_KEY"], BASE_NAME)
+    airtable = ApiClient(api_key, BASE_NAME)
 
     logger.info("Loading auth data from {}", auth_path)
     scraper = Scraper(auth_path)
@@ -79,11 +84,11 @@ async def main(auth_path: str, cache_path: str, debug: bool):
         TownsMarketSync(api, airtable, cache, whitelist),
     ]
 
-    sync_table = airtable.base.table("Sync")
     while True:
         current_turn = await api.turn()
         logger.info("Current turn: {}", current_turn)
 
+        sync_table = airtable.base.table("Sync")
         last_turn = sync_table.all()[-1]["fields"]["turn"]
         if last_turn < current_turn:
             num_records_synced = 0
