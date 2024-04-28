@@ -3,7 +3,7 @@ import asyncclick as click
 from pyairtable.formulas import match
 
 from loguru import logger
-from mercatorio.api.api import Api
+from mercatorio.api.api import Api, TurnInProgressException
 from mercatorio.airtable.client import ApiClient
 from mercatorio.airtable.operations import RegionsSync, TownsSync, TownsMarketSync
 from mercatorio.scraper import Scraper
@@ -82,8 +82,13 @@ async def main(api_key: str, auth_path: str, cache_path: str, debug: bool):
     ]
 
     while True:
-        current_turn = await api.turn()
-        logger.info("Current turn: {}", current_turn)
+        try:
+            current_turn = await api.turn()
+            logger.info("Current turn: {}", current_turn)
+        except TurnInProgressException:
+            logger.info("Turn still in progress.")
+            time.sleep(60)
+            continue
 
         sync_table = airtable.base.table("Sync")
         if not sync_table.first(formula=match({"turn": current_turn})):

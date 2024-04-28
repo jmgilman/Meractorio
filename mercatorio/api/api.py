@@ -4,6 +4,12 @@ from mercatorio.cache import Cache
 from mercatorio.scraper import Scraper
 
 
+class TurnInProgressException(Exception):
+    """Exception raised when a turn is in progress."""
+
+    pass
+
+
 class Api:
     """A class for interacting with the Mercatorio API."""
 
@@ -23,4 +29,8 @@ class Api:
     async def turn(self) -> int:
         """Get the current turn number."""
         response = await self.scraper.get("https://play.mercatorio.io/api/clock")
+
+        if "preparing next game-turn, try again in a few seconds" in response.text:
+            raise TurnInProgressException("A turn is in progress")
+
         return response.json()["turn"]

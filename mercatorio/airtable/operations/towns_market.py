@@ -28,16 +28,13 @@ class TownsMarketSync(SyncOperation):
         if self.whitelist:
             all_towns = [t for t in all_towns if t.name in self.whitelist]
 
-        batch_size = 2
+        batch_size = 10
         data = []
         for i in range(0, len(all_towns), batch_size):
             batch = all_towns[i : i + batch_size]
             tasks = [self.fetch_town_data(town) for town in batch]
             results = await asyncio.gather(*tasks)
             data.extend(item for sublist in results for item in sublist)
-            logger.info(
-                f"Processed batch {i//batch_size + 1}/{(len(all_towns) + batch_size - 1) // batch_size}"
-            )
 
         logger.info(f"Upserting {len(data)} records to {TABLE_NAME}")
         self.client.upsert_records_by_field(TABLE_NAME, "id", data)
@@ -45,7 +42,7 @@ class TownsMarketSync(SyncOperation):
 
     async def fetch_town_data(self, town):
         logger.info(f"Syncing market data for {town.name}")
-        market_data = await self.api.towns.market(town.id)
+        market_data = await self.api.towns.marketdata(town.id)
         return [
             {
                 "id": f"{town.name} - {item}",
@@ -58,14 +55,12 @@ class TownsMarketSync(SyncOperation):
                 "highest_bid": market_data[item].highest_bid,
                 "lowest_ask": market_data[item].lowest_ask,
                 "volume": market_data[item].volume,
-                "bid_volume": market_data[item].bid_volume,
-                "avg_bid_price": market_data[item].avg_bid_price,
-                "ask_volume": market_data[item].ask_volume,
-                "avg_ask_price": market_data[item].avg_ask_price,
-                "avg_historical_volume": market_data[item].avg_historical_volume,
+                "volume_prev_12": market_data[item].volume_prev_12,
+                "bid_volume_10": market_data[item].bid_volume_10,
+                "ask_volume_10": market_data[item].ask_volume_10,
             }
             for item in market_data
         ]
 
     def __str__(self):
-        return "Towns Market Data"
+        return "Town Market Data"
