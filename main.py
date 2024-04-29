@@ -76,9 +76,9 @@ async def main(api_key: str, auth_path: str, cache_path: str, debug: bool):
     # Define the operations to run.
     # Comment out any operations you don't want to run.
     operations = [
-        # RegionsSync(api, airtable),
-        # TownsSync(api, airtable),
-        TownsMarketSync(api, airtable, cache),
+        # RegionsSync(api, airtable, cache),
+        TownsSync(api, airtable, cache),
+        # TownsMarketSync(api, airtable, cache),
     ]
 
     while True:
@@ -113,9 +113,9 @@ async def main(api_key: str, auth_path: str, cache_path: str, debug: bool):
                 logger.info("No sync needed.")
 
             await asyncio.sleep(60)
-        except Exception as e:
-            logger.exception(e)
-            await asyncio.sleep(60)
+        # except Exception as e:
+        #     logger.exception(e)
+        #     await asyncio.sleep(60)
         except asyncio.exceptions.CancelledError:
             logger.info("Exiting.")
             await safe_close(api.scraper)
