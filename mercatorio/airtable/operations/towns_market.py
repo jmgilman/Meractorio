@@ -1,10 +1,9 @@
 import asyncio
+
+from aiodecorators import Semaphore
 from loguru import logger
 
-from mercatorio.airtable.client import ApiClient
 from mercatorio.airtable.operation import SyncOperation
-from mercatorio.api.api import Api
-from mercatorio.cache import Cache
 
 TABLE_NAME = "Town Market Data"
 
@@ -12,35 +11,27 @@ TABLE_NAME = "Town Market Data"
 class TownsMarketSync(SyncOperation):
     """Syncs town market data from the Mercatorio API to AirTable."""
 
-    def __init__(
-        self,
-        api: Api,
-        client: ApiClient,
-        cache: Cache,
-        whitelist: list[str] = None,
-    ):
-        super().__init__(api, client, cache)
-        self.whitelist = whitelist
-
     async def sync(self):
-        data = []
         all_towns = await self.api.towns.all()
-        if self.whitelist:
-            all_towns = [t for t in all_towns if t.name in self.whitelist]
-
-        batch_size = 10
-        data = []
-        for i in range(0, len(all_towns), batch_size):
-            batch = all_towns[i : i + batch_size]
-            tasks = [self.fetch_town_data(town) for town in batch]
-            results = await asyncio.gather(*tasks)
-            data.extend(item for sublist in results for item in sublist)
+        results = await asyncio.gather(
+            *[self.fetch_town_market_data(town) for town in all_towns]
+        )
+        data = [item for sublist in results for item in sublist]
 
         logger.info(f"Upserting {len(data)} records to {TABLE_NAME}")
         self.client.upsert_records_by_field(TABLE_NAME, "id", data)
         return len(data)
 
-    async def fetch_town_data(self, town):
+    @Semaphore(10)
+    async def fetch_town_market_data(self, town):
+        """Fetches market data for a single town.
+
+        Args:
+            town (Town): The town to fetch market data for.
+
+        Returns:
+            list[dict]: The market data for the town.
+        """
         logger.info(f"Syncing market data for {town.name}")
         market_data = await self.api.towns.marketdata(town.id)
         return [

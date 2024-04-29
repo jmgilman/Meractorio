@@ -1,3 +1,6 @@
+import asyncio
+
+from aiodecorators import Semaphore
 from loguru import logger
 
 from mercatorio.airtable.operation import SyncOperation
@@ -10,14 +13,14 @@ class TownsSync(SyncOperation):
     """Syncs town data from the Mercatorio API to AirTable."""
 
     async def sync(self):
-        data = []
-        for town in await self.api.towns.all():
-            data.append(await self.fetch_town_data(town))
+        all_towns = await self.api.towns.all()
+        data = await asyncio.gather(*[self.fetch_town_data(town) for town in all_towns])
 
         logger.info(f"Upserting {len(data)} records to {TABLE_NAME}")
         self.client.upsert_records_by_field(TABLE_NAME, "id", data)
         return len(data)
 
+    @Semaphore(10)
     async def fetch_town_data(self, town: Town):
         """Fetches data for a single town.
 
