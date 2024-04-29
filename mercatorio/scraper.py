@@ -36,3 +36,6 @@ class Scraper:
             response = await self.session.get(url, **kwargs)
 
         return response
+
+    async def close(self):
+        await self.session.aclose()

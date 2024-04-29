@@ -1,3 +1,4 @@
+import asyncio
 import aiosqlite
 import asyncclick as click
 from pyairtable.formulas import match
@@ -10,7 +11,6 @@ from mercatorio.scraper import Scraper
 
 import datetime
 import sys
-import time
 
 BASE_NAME = "Raw Data"
 
@@ -78,41 +78,57 @@ async def main(api_key: str, auth_path: str, cache_path: str, debug: bool):
     operations = [
         # RegionsSync(api, airtable),
         # TownsSync(api, airtable),
-        TownsMarketSync(api, airtable, cache, whitelist),
+        TownsMarketSync(api, airtable, cache),
     ]
 
     while True:
         try:
-            current_turn = await api.turn()
-            logger.info("Current turn: {}", current_turn)
-        except TurnInProgressException:
-            logger.info("Turn still in progress.")
-            time.sleep(60)
-            continue
+            try:
+                current_turn = await api.turn()
+                logger.info("Current turn: {}", current_turn)
+            except TurnInProgressException:
+                logger.info("Turn still in progress.")
+                await asyncio.sleep(60)
+                continue
 
-        sync_table = airtable.base.table("Sync")
-        if not sync_table.first(formula=match({"turn": current_turn})):
-            logger.info("Sync needed.")
+            sync_table = airtable.base.table("Sync")
+            if not sync_table.first(formula=match({"turn": current_turn})):
+                logger.info("Sync needed.")
 
-            num_records_synced = 0
-            for op in operations:
-                logger.info("Running sync operation: {}", op)
-                num_records_synced += await op.sync()
+                num_records_synced = 0
+                for op in operations:
+                    logger.info("Running sync operation: {}", op)
+                    num_records_synced += await op.sync()
 
-            logger.info("Synced a total of {} records", num_records_synced)
+                logger.info("Synced a total of {} records", num_records_synced)
 
-            sync_table.create(
-                {
-                    "turn": current_turn,
-                    "timestamp": datetime.datetime.now().isoformat() + "Z",
-                    "records": num_records_synced,
-                },
-            )
+                sync_table.create(
+                    {
+                        "turn": current_turn,
+                        "timestamp": datetime.datetime.now().isoformat() + "Z",
+                        "records": num_records_synced,
+                    },
+                )
+            else:
+                logger.info("No sync needed.")
 
-            time.sleep(60)
-        else:
-            logger.info("No sync needed.")
-            time.sleep(60)
+            await asyncio.sleep(60)
+        except Exception as e:
+            logger.exception(e)
+            await asyncio.sleep(60)
+        except asyncio.exceptions.CancelledError:
+            logger.info("Exiting.")
+            await safe_close(api.scraper)
+            await safe_close(cache)
+            break
+
+
+async def safe_close(resource):
+    """Safely close an asynchronous resource, handling any exceptions."""
+    try:
+        await resource.close()
+    except Exception as e:
+        logger.error("Failed to close resource {}: {}", resource, str(e))
 
 
 if __name__ == "__main__":
