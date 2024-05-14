@@ -15,7 +15,16 @@ MERC_API_USER="email@domain.com"
 MERC_API_TOKEN="123abc"
 ```
 
-Run it with:
+Next, create a new Airtable base named `Raw Data`.
+Run the migration script:
+
+```shell
+python migrate.py
+```
+
+This will configure the base with the required table structure.
+
+Finally, run it with:
 
 ```shell
 docker compose up
