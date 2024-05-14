@@ -1,3 +1,4 @@
+BASE_NAME = "Raw Data"
 TABLE_DATA = {
     "Sync": {
         "description": "Sync log",

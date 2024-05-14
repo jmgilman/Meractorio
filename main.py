@@ -8,11 +8,10 @@ from pymerc.client import Client
 from loguru import logger
 from mercatorio.airtable.client import ApiClient
 from mercatorio.airtable.operations import RegionsSync, TownsSync, TownsMarketSync
+from mercatorio.airtable.static import BASE_NAME
 
 import datetime
 import sys
-
-BASE_NAME = "Raw Data"
 
 load_dotenv()
 
