@@ -8,7 +8,7 @@ class RegionsSync(SyncOperation):
 
     async def sync(self):
         data = []
-        for region in await self.api.map.all():
+        for region in await self.api.map.get_all():
             data.append(
                 {
                     "id": region.id,

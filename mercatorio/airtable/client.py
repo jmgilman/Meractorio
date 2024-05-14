@@ -1,4 +1,4 @@
-from pyairtable import Api as AirtableApi, Base, formulas, Table
+from pyairtable import Api as AirtableApi
 
 
 class ApiClient:

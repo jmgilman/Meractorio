@@ -1,13 +1,18 @@
 import os
 import sys
-import asyncio
-from loguru import logger
-from mercatorio.airtable.client import ApiClient
-from mercatorio.api.api import Api
-from mercatorio.scraper import Scraper
+
 import aiosqlite
+from dotenv import load_dotenv
+from loguru import logger
+from pymerc.client import Client
+
+from mercatorio.airtable.client import ApiClient
+
 
 BASE_NAME = "Raw Data"
+
+
+load_dotenv()
 
 logger.remove()
 logger.add(
@@ -27,7 +32,6 @@ async def main():
     global airtable, api, cache
 
     airtable = ApiClient(os.environ["AIRBASE_API_KEY"], BASE_NAME)
-    scraper = Scraper("auth.json")
     cache = await aiosqlite.connect("cache.db")
-    api = Api(scraper, cache)
+    api = Client(os.environ["MERC_API_USER"], os.environ["MERC_API_TOKEN"])
     await api.init_cache()

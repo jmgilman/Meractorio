@@ -5,30 +5,15 @@ The scraped data is reformated into a table-structure that is suitable for AirTa
 
 ## Usage
 
-You must provide an Airbase API key.
-It's recommended you keep it in a local `.env` file, formatted like so:
+You must first [generate API credentials](https://play.mercatorio.io/settings/api).
+You must also [generate an Airtable PAT](https://support.airtable.com/docs/creating-personal-access-tokens).
+Both credentials should be stored in a local `.env` file in the following format:
 
 ```text
-AIRBASE_API_KEY="patabc123"
+AIRBASE_API_KEY="abc123"
+MERC_API_USER="email@domain.com"
+MERC_API_TOKEN="123abc"
 ```
-
-Additionally, you must setup the initial `auth.json` file like so:
-
-```json
-{
-    "id_token": "<ID_TOKEN>",
-    "refresh_token": "<REFRESH_TOKEN>",
-    "current_time": 00000000000.0000000,
-    "expires_in": "3600"
-}
-```
-
-Replacing the `ID_TOKEN` and `REFRESH_TOKEN` fields with the correct values.
-These values can be obtained by using the [IndexedDB Exporter] on a page of the game where you are authenticated.
-Select the `firebaseLocalStorageDb` database.
-In the dumped data, you will find the `ID_TOKEN` field under the field called `accessToken`.
-You will also find the `REFRESH_TOKEN` under the field called `refreshToken`.
-This only needs to be done once as the script will keep the token refreshed after running it.
 
 Run it with:
 

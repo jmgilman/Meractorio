@@ -13,14 +13,17 @@ loguru = "^0.7.2"
 click = "^8.1.7"
 pydantic = "^2.7.1"
 pyairtable = "^2.3.3"
-httpx = {extras = ["http2"], version = "^0.27.0"}
+httpx = { extras = ["http2"], version = "^0.27.0" }
 asyncclick = "^8.1.7.2"
 aiosqlite = "^0.20.0"
 aiodecorators = "^0.2.1"
+pymerc = "^0.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.24.0"
+python-dotenv = "^1.0.1"
+ruff = "^0.4.4"
 
 [build-system]
 requires = ["poetry-core"]

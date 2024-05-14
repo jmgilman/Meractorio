@@ -1,33 +1,37 @@
 import asyncio
 import aiosqlite
 import asyncclick as click
+from dotenv import load_dotenv
 from pyairtable.formulas import match
+from pymerc.client import Client
 
 from loguru import logger
-from mercatorio.api.api import Api, TurnInProgressException
 from mercatorio.airtable.client import ApiClient
 from mercatorio.airtable.operations import RegionsSync, TownsSync, TownsMarketSync
-from mercatorio.scraper import Scraper
 
 import datetime
 import sys
 
 BASE_NAME = "Raw Data"
 
+load_dotenv()
+
 
 @click.command()
 @click.option(
-    "--api-key",
+    "--merc-api-user",
+    type=str,
+    help="Mercatorio API user.",
+    envvar="MERC_API_USER",
+)
+@click.option(
+    "--merc-api-token", type=str, help="Mercatorio API token.", envvar="MERC_API_TOKEN"
+)
+@click.option(
+    "--airbase-api-key",
     type=str,
     help="Airbase API key.",
     envvar="AIRBASE_API_KEY",
-)
-@click.option(
-    "--auth-path",
-    type=click.Path(exists=True),
-    default="auth.json",
-    help="Path to the file holding session state.",
-    envvar="AUTH_PATH",
 )
 @click.option(
     "--cache-path",
@@ -37,7 +41,13 @@ BASE_NAME = "Raw Data"
     envvar="CACHE_PATH",
 )
 @click.option("--debug", is_flag=True, help="Enable debug logging.", envvar="DEBUG")
-async def main(api_key: str, auth_path: str, cache_path: str, debug: bool):
+async def main(
+    merc_api_user: str,
+    merc_api_token: str,
+    airbase_api_key: str,
+    cache_path: str,
+    debug: bool,
+):
     """A simple CLI for scraping Mercatorio data."""
     logger.remove()
     logger.add(
@@ -47,30 +57,27 @@ async def main(api_key: str, auth_path: str, cache_path: str, debug: bool):
         colorize=True,
     )
 
-    logger.info("Initializing Airtable API client.")
-    airtable = ApiClient(api_key, BASE_NAME)
+    logger.info("Initializing Mercatorio client.")
+    client = Client(merc_api_user, merc_api_token)
 
-    logger.info("Loading auth data from {}", auth_path)
-    scraper = Scraper(auth_path)
+    logger.info("Initializing Airtable API client.")
+    airtable = ApiClient(airbase_api_key, BASE_NAME)
 
     logger.info("Loading cache from {}", cache_path)
     cache = await aiosqlite.connect(cache_path)
 
-    api = Api(scraper, cache)
-    await api.init_cache()
-
     # Define the operations to run.
     # Comment out any operations you don't want to run.
     operations = [
-        RegionsSync(api, airtable, cache),
-        TownsSync(api, airtable, cache),
-        TownsMarketSync(api, airtable, cache),
+        RegionsSync(client, airtable, cache),
+        TownsSync(client, airtable, cache),
+        TownsMarketSync(client, airtable, cache),
     ]
 
     while True:
         try:
             try:
-                current_turn = await api.turn()
+                current_turn = await turn(client)
                 logger.info("Current turn: {}", current_turn)
             except TurnInProgressException:
                 logger.info("Turn still in progress.")
@@ -104,7 +111,6 @@ async def main(api_key: str, auth_path: str, cache_path: str, debug: bool):
             await asyncio.sleep(60)
         except asyncio.exceptions.CancelledError:
             logger.info("Exiting.")
-            await safe_close(api.scraper)
             await safe_close(cache)
             break
 
@@ -115,6 +121,29 @@ async def safe_close(resource):
         await resource.close()
     except Exception as e:
         logger.error("Failed to close resource {}: {}", resource, str(e))
+
+
+class TurnInProgressException(Exception):
+    """Exception raised when a turn is in progress."""
+
+    pass
+
+
+async def turn(client: Client) -> int:
+    """Get the current turn number.
+
+    Args:
+        client (Client): The Mercatorio API client.
+
+    Returns:
+        int: The current turn number.
+    """
+    response = await client.get("https://play.mercatorio.io/api/clock")
+
+    if "preparing next game-turn, try again in a few seconds" in response.text:
+        raise TurnInProgressException("A turn is in progress")
+
+    return response.json()["turn"]
 
 
 if __name__ == "__main__":

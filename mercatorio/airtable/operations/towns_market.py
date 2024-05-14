@@ -12,7 +12,7 @@ class TownsMarketSync(SyncOperation):
     """Syncs town market data from the Mercatorio API to AirTable."""
 
     async def sync(self):
-        all_towns = await self.api.towns.all()
+        all_towns = await self.api.towns.get_all()
         results = await asyncio.gather(
             *[self.fetch_town_market_data(town) for town in all_towns]
         )
@@ -33,7 +33,7 @@ class TownsMarketSync(SyncOperation):
             list[dict]: The market data for the town.
         """
         logger.info(f"Syncing market data for {town.name}")
-        market_data = await self.api.towns.marketdata(town.id)
+        market_data = (await self.api.towns.get_market_data(town.id)).markets
         return [
             {
                 "id": f"{town.name} - {item}",
