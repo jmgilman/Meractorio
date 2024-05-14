@@ -19,7 +19,7 @@ Next, create a new Airtable base named `Raw Data`.
 Run the migration script:
 
 ```shell
-python migrate.py
+poetry run python migrate.py
 ```
 
 This will configure the base with the required table structure.
