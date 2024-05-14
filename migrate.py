@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from mercatorio.airtable.client import ApiClient
 from mercatorio.airtable.static import TABLE_DATA
 
-BASE_NAME = "Raw Data 2"
+BASE_NAME = "Raw Data"
 REGIONS_TABLE_NAME = "Regions"
 TOWNS_TABLE_NAME = "Towns"
 TOWN_MARKETS_TABLE_NAME = "Town Market Data"
