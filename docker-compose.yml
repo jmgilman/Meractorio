@@ -4,8 +4,8 @@ services:
     build: .
     environment:
       AIRBASE_API_KEY: ${AIRBASE_API_KEY}
-      AUTH_PATH: /config/auth.json
-      CACHE_PATH: /config/cache.db
+      MERC_API_USER: ${MERC_API_USER}
+      MERC_API_TOKEN: ${MERC_API_TOKEN}
     volumes:
       - ./auth.json:/config/auth.json
       - ./cache.db:/config/cache.db
