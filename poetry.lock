@@ -682,13 +682,13 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pymerc"
-version = "0.2.0"
+version = "0.3.0"
 description = "A Python library for interacting with the Mercatorio browser based game"
 optional = false
 python-versions = "<4.0,>=3.11"
 files = [
-    {file = "pymerc-0.2.0-py3-none-any.whl", hash = "sha256:a2b8d2785090dbf64524cb514f0c436a6f7f6e4c368819ae7660b78b437808ae"},
-    {file = "pymerc-0.2.0.tar.gz", hash = "sha256:5d3f575676a5f645f073ded5e21812e1a20e7b8878d351cfd15f4660229bb654"},
+    {file = "pymerc-0.3.0-py3-none-any.whl", hash = "sha256:5ac96c9957e1e1fc8a3bcbedb74cca34e1221a141d8736762f3d40f575503af4"},
+    {file = "pymerc-0.3.0.tar.gz", hash = "sha256:adfad6f0ff96aa04856fe610be3d7f5cb83d43f746f184bbafaf9ebc1a5f3c96"},
 ]
 
 [package.dependencies]
@@ -870,4 +870,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "5742319fe99d604114fa03f4b56f6f46b0f0d4455ab8f4d69dd2b22fd965c7f4"
+content-hash = "212568ce03b45975f85592a1186fab2dccf36df90ed4c8f26c8543fa04f9385d"

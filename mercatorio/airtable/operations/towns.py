@@ -44,7 +44,7 @@ class TownsSync(SyncOperation):
             "commoners": town_data.commoners.count,
             "gentry": len(town_data.household_ids),
             "district": len(town_data.domain) - 1,
-            "structures": len(town_data.structures),
+            "structures": towns_util.sum_town_structures(town_data),
             "total_taxes": towns_util.sum_town_taxes(town_data),
         }
 
